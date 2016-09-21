@@ -52,7 +52,7 @@
     <p> This is my attempt to both use the Socrata API and to use geojson at the same time.</p>
 
     <div>
-    Zip Code: (Valid values are: 94604, 94621, 90017, 92867)
+    Zip Code: (Valid values are: 39194)
     <input type="text" id="zipcode"><br>
     <input type="button" onclick="redraw_with_zip(this)" value="Draw">Draw With zip</input>
     </div>
@@ -79,7 +79,7 @@
     </div>
   </body>
   <script>
-    var zip = "92867";
+    var zip = "39194";
 
 function redraw_with_zip() {
     zip = $("#zipcode").val();
@@ -90,10 +90,11 @@ var geojson_snippet = ".geojson";
 var facility_zip = "facility_zip";
 
 // NOTE: This is for Ontario, California!!!
-var home_long = -117.671471;
-var home_lat = 34.085175;
+var home_long = -90.194039;
+var home_lat = 32.285642;
 
 // So this will be a geoJSON object, but for the first story I will just take it apart and render it...
+var all_data;
 var near_facilities;
 
 var mapboxgl_accessToken = 'pk.eyJ1Ijoicm9iZXJ0bHJlYWQiLCJhIjoiY2lvcTkyejZtMDAxdHUzbTB0Z3R5MmIxZyJ9.wabsdiW8W9nY-48LRiclmw';
@@ -138,7 +139,6 @@ function render_near_facilities() {
 
 
 
-
 function query_zip_code(zip) {
     return socrata_url + geojson_snippet + "?" + facility_zip +"=" + zip;
 }
@@ -149,18 +149,60 @@ function get_geojson_data_in_zip(socrata_url,geojson_snippet,facility_zip,zip,f)
 }
 
 function redraw() {
-        get_geojson_data_in_zip(socrata_url,geojson_snippet,facility_zip,zip,
-						  // This is the success function, which we will almost certainly change!
-			    function( data ) {
-				near_facilities = data;
-				render_near_facilities();
-						  });
+    // Need to do some querying here.
+    //let's filter near_facilities based on zip code.
+    near_facilities = all_data.filter(x =>
+				      {
+					  return (x.PhysicalZipCode === zip);
+				      }
+				     );
+    render_data(near_facilities);
+    render_near_facilities();
+    
 }
 
 $(document).ready(function () {
     $("#zipcode").val(zip);
-    redraw();
-});
+  //  redraw();
+		       });
+
+
+var data_url = "https://raw.githubusercontent.com/RobertLRead/chhs-geojson/gh-pages/MS%20ITS%20RFP%203717-Vendor%20Challenge%20Dataset%20FINAL.json";
+
+function render_data(data) {
+    $("#faclist").html(JSON.stringify(near_facilities));
+
+    var items = [];
+    $.each( data, function( key, val ) {
+	items.push( "<li id='" + key + "'>" + JSON.stringify(val) + "</li>" );
+    });
+    
+    $( "<ul/>", {
+	"class": "my-new-list",
+	html: items.join( "" )
+    }).appendTo( "#faclist" );
+}
+
+
+function get_data(url) {
+    $.getJSON( url, function( data ) {
+
+	all_data = data;
+	near_facilities = data;
+	render_data(data);
+    })
+	.done(function() {
+	    console.log( "second success" );
+	})
+	.fail(function(jqXHR, textStatus,errorThrown ) {
+	    console.log( "error"  );
+	})
+	.always(function() {
+	    console.log( "complete" );
+	});
+}
+
+get_data(data_url);
 
     </script>
 </html>
