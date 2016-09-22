@@ -56,6 +56,27 @@
         <section id="main_content">
           <h3>
     <div>
+    <div>
+    Provider Name: <input type="text" id="providername">
+    </div>
+
+    <div>
+    Provider Type:
+</div>
+    <div class="dropdown">
+  <button class="btn btn-primary dropdown-toggle" type="button" data-toggle="dropdown">Provider Type
+  <span class="caret"></span></button>
+    <ul class="dropdown-menu" aria-labelledby="dropdownMenu1" id="providertype">
+    <li><a href="#">Any</a></li>
+    <li><a href="#">Group Home</a></li>
+    <li><a href="#">Center</a></li>
+    <li><a href="#">Non Relative In Home</a></li>
+    <li><a href="#">Non Relative Out of Home</a></li>
+    <li><a href="#">Slot Contractor</a></li>        
+    </ul>
+    </div>
+
+
     Zip Code: (Valid zip in MS : 39218,39194)
     <input type="text" id="zipcode">
     <input id="searchbutton" type="button" onclick="redraw_with_zip(this)" value="Search"></input>
@@ -72,12 +93,26 @@
   </body>
     <script>
 
+
+$( "#providertype" ).change(function() {
+    search();
+});
+
 $("#zipcode").keyup(function(event){
     if(event.keyCode == 13){
         $("#searchbutton").click();
     }
 });
-    // This is the zip for Jackson
+
+$("#providername").keyup(function(event){
+    if(event.keyCode == 13){
+	search();
+    }
+});
+
+
+
+// This is the zip for Jackson
     var default_zip = "39218";
 var zip = "39218";
 
@@ -98,6 +133,22 @@ function redraw_with_zip() {
     set_map_view(near_facilities);
     // now change map...
 }
+
+function search() {
+    var pn = $("#providername").val();
+
+    var tp = $('#providertype option:selected').text();
+    alert(tp);
+        near_facilities = all_data.filter(x =>
+				      {
+					  return (x.ProviderName === pn);
+				      }
+				     );
+    render_data(near_facilities);
+    set_map_view(near_facilities);
+
+}
+
 var socrata_url = "https://chhs.data.ca.gov/resource/mffa-c6z5";
 var geojson_snippet = ".geojson";
 var facility_zip = "facility_zip";
