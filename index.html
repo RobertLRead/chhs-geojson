@@ -219,45 +219,40 @@ function render_one_day_care(key,obj) {
     var county = obj.CountyName;
     var type = obj.ProviderTypeDescription;
     var zip = obj.PhysicalZipCode;
+    var rating = obj.QualityRatingDescription;
 
     html += '<div class="list-group" id="' + key + ">";
     html += '<a href="#" class="list-group-item active">';
     html += '<span class="list-group-item-heading">'+name +'</span><span class="floatright">'+phone +'</span>';
     html += '<p>';
-    html += '<span class="list-group-item-text">' + type + '</span>';
-    html += '<span class="list-group-item-text" class="floatright"> Rating: ' + stars + '</span>';
+    html += '<span class="list-group-item-text">Type: ' + type + '</span>';
+    html += '<span class="list-group-item-text" class="floatright"> Rating: ' + rating + '</span>';
     var src = "";
-    var alt = "";
+    var alt = rating;
     switch(stars) {
 	case "0": 
 	src = "./images/0-star-small.jpg";
-	alt = "Zero Rating";
 	break;
 	case "1":
 	src = "./images/1-star-small.jpg";
-	alt = "Zero Rating";
 	break;	
 	case "2":
 	src = "./images/2-star-small.jpg";
-	alt = "Zero Rating";
 	break;	
 	case "3":
 	src = "./images/3-star-small.jpg";
-	alt = "Zero Rating";
 	break;	
 	case "4":
 	src = "./images/4-star-small.jpg";
-	alt = "Zero Rating";
 	break;	
 	case "5":
 	src = "./images/5-star-small.jpg";
-	alt = "Zero Rating";
 	break;	
     default:
 	src = "./images/0-star-small.jpg";
-	alt = "No Rating Available";
     };
-    html += '<img class="floatright" src="./images/0-star-small.jpg" alt="Zero Rating"></img>';    
+
+    html += '<img class="floatright" src="'+src+'" alt="Zero Rating"></img>';    
     html += '</p>';
     html += '<span class="list-group-item-text">City: ' + city +', County:' + county + '</span>';
     html += '<span class="floatright">Zip: '+zip +'</span>';
