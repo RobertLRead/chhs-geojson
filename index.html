@@ -46,7 +46,7 @@
       <div class="inner">
 
         <header>
-          <h1>Find Day Care in Mississipi</h1>
+          <h1>Find Day Care in Mississippi</h1>
     <h2>(An Exploratory Program, a Work in Progress!)</h2>
 	 <h3 id="message"> </span>
         </header>
@@ -116,11 +116,6 @@ $("#providername").keyup(function(event){
     var default_zip = "39218";
 var zip = "39218";
 
-$(':radio').change(
-  function(){
-    $('.choice').text( $(this).val() + ' stars' );
-  } 
-)
 
 function redraw_with_zip() {
     zip = $("#zipcode").val();
@@ -332,8 +327,8 @@ function render_data(data) {
 $.get("http://ipinfo.io", function(response) {
     console.log(response.postal);
     zip = response.postal;
-    if (response.region != 'Mississipi') {
-	$("#message").text("Hmm, you seem to be in " + response.region + ", not the great state of Mississipi. We'll start your search centered in Jackson.");
+    if (response.region != 'Mississippi') {
+	$("#message").text("Hmm, you seem to be in " + response.region + ", not the great state of Mississippi. We'll start your search centered in Jackson.");
 	zip = default_zip;
     } else {
 	$("#message").text("You seem to me in Zip Code : "+zip +", so we will start you there.");
