@@ -30,7 +30,17 @@
 <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css" integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
 
 <!-- Latest compiled and minified JavaScript -->
-<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>        
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+
+
+<!-- Latest compiled and minified CSS -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.11.2/css/bootstrap-select.min.css">
+
+<!-- Latest compiled and minified JavaScript -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.11.2/js/bootstrap-select.min.js"></script>
+
+<script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?key=&libraries=places"></script>
+
 
 </head>
 
@@ -63,16 +73,22 @@
     <div>
     Provider Type:
 </div>
+    <select class="selectpicker show-tick">
+  <option>Mustard</option>
+  <option>Ketchup</option>
+  <option>Relish</option>
+</select>
+
     <div class="dropdown">
   <button class="btn btn-primary dropdown-toggle" type="button" data-toggle="dropdown">Provider Type
   <span class="caret"></span></button>
     <ul class="dropdown-menu" aria-labelledby="dropdownMenu1" id="providertype">
-    <li><a href="#">Any</a></li>
-    <li><a href="#">Group Home</a></li>
-    <li><a href="#">Center</a></li>
-    <li><a href="#">Non Relative In Home</a></li>
-    <li><a href="#">Non Relative Out of Home</a></li>
-    <li><a href="#">Slot Contractor</a></li>        
+    <li id="action-1"><a href="#">Any</a></li>
+    <li id="action-2"><a href="#">Group Home</a></li>
+    <li id="action-3"><a href="#">Center</a></li>
+    <li id="action-4"><a href="#">Non Relative In Home</a></li>
+    <li id="action-5"><a href="#">Non Relative Out of Home</a></li>
+    <li id="action-6"><a href="#">Slot Contractor</a></li>        
     </ul>
     </div>
 
@@ -81,7 +97,8 @@
     <input type="text" id="zipcode">
     <input id="searchbutton" type="button" onclick="redraw_with_zip(this)" value="Search"></input>
     </div>
-
+    <div id="map">
+      </div>
     <div id="facmap" style="width: 600px; height: 400px"></div>
 	  <div id="faclist">
 	    <p>
@@ -93,10 +110,45 @@
   </body>
     <script>
 
-
-$( "#providertype" ).change(function() {
+$('div.dropdown ul.dropdown-menu li a').click(function (e) {
+    var $div = $(this).parent().parent().parent(); 
+    var $btn = $div.find('button');
+    $btn.html($(this).text() + ' <span class="caret"></span>');
+    $div.removeClass('open');
+    e.preventDefault();
     search();
+    return false;
 });
+
+// $( "#providertype" ).change(function() {
+//     search();
+// });
+
+
+// $("#action-1").click(function(e){
+//     alert(e);
+//     search();
+// });
+// $("#action-2").click(function(e){
+//     alert(e);
+//     search();
+// });
+// $("#action-3").click(function(e){
+//     alert(e);
+//     search();
+// });
+// $("#action-4").click(function(e){
+//     alert(e);
+//     search();    
+// });
+// $("#action-5").click(function(e){
+//     alert(e);
+//     search();    
+// });
+// $("#action-6").click(function(e){
+//     alert(e);
+//     search();    
+// });
 
 $("#zipcode").keyup(function(event){
     if(event.keyCode == 13){
@@ -133,7 +185,6 @@ function search() {
     var pn = $("#providername").val();
 
     var tp = $('#providertype option:selected').text();
-    alert(tp);
         near_facilities = all_data.filter(x =>
 				      {
 					  return (x.ProviderName === pn);
@@ -357,7 +408,7 @@ function get_data(url) {
 
 }
 
-get_data(data_url);
+// get_data(data_url);
 
 var ms_zips_url = "https://raw.githubusercontent.com/RobertLRead/chhs-geojson/gh-pages/MississippiZipCodes.json";
 
@@ -381,7 +432,44 @@ function get_MS_zips(url) {
 
 }
 
-get_MS_zips(ms_zips_url);
+// get_MS_zips(ms_zips_url);
+
+
+
+var map;
+var service;
+var infowindow;
+
+function initialize() {
+  var pyrmont = new google.maps.LatLng(-33.8665433,151.1956316);
+
+    
+  var jackson = new google.maps.LatLng(32.303922, -90.198574);
+  var map = new google.maps.Map(document.getElementById('map'), {
+      center: jackson,
+      zoom: 15
+    });
+
+  var request = {
+    location: jackson,
+    radius: '500',
+    query: 'day care'
+  };
+
+  service = new google.maps.places.PlacesService(map);
+  service.textSearch(request, callback);
+}
+
+function callback(results, status) {
+  if (status == google.maps.places.PlacesServiceStatus.OK) {
+    for (var i = 0; i < results.length; i++) {
+      var place = results[i];
+      createMarker(results[i]);
+    }
+  }
+}
+
+initialize();
 
     </script>
 </html>
