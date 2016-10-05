@@ -66,6 +66,9 @@
         <section id="main_content">
           <h3>
     <div>
+
+    <input id="trytoplace" type="button" onclick="geoplace()" value="GeoPlace"></input>
+    
     <div>
     Provider Name: <input type="text" id="providername">
     </div>
@@ -408,7 +411,7 @@ function get_data(url) {
 
 }
 
-// get_data(data_url);
+get_data(data_url);
 
 var ms_zips_url = "https://raw.githubusercontent.com/RobertLRead/chhs-geojson/gh-pages/MississippiZipCodes.json";
 
@@ -432,20 +435,18 @@ function get_MS_zips(url) {
 
 }
 
-// get_MS_zips(ms_zips_url);
+get_MS_zips(ms_zips_url);
 
 
 
-var map;
+var gmap;
 var service;
 var infowindow;
+var jackson = new google.maps.LatLng(32.303922, -90.198574);
 
 function initialize() {
-  var pyrmont = new google.maps.LatLng(-33.8665433,151.1956316);
 
-    
-  var jackson = new google.maps.LatLng(32.303922, -90.198574);
-  var map = new google.maps.Map(document.getElementById('map'), {
+  gmap = new google.maps.Map(document.getElementById('map'), {
       center: jackson,
       zoom: 15
     });
@@ -456,20 +457,81 @@ function initialize() {
     query: 'day care'
   };
 
-  service = new google.maps.places.PlacesService(map);
-  service.textSearch(request, callback);
+//  service = new google.maps.places.PlacesService(gmap);
+//  service.textSearch(request, callback);
 }
 
-function callback(results, status) {
-  if (status == google.maps.places.PlacesServiceStatus.OK) {
-    for (var i = 0; i < results.length; i++) {
-      var place = results[i];
-      createMarker(results[i]);
+//function callback(results, status) {
+//  if (status == google.maps.places.PlacesServiceStatus.OK) {
+//    for (var i = 0; i < results.length; i++) {
+//      var place = results[i];
+//      createMarker(results[i]);
+//    }
+//  }
+//}
+
+function put_gmap_on_zip(zip) {
+    var latx = Number(MSCODES[zip].Lat);
+    var lony = Number(MSCODES[zip].Long);
+    var location = new google.maps.LatLng(latx, lony);
+    gmap = new google.maps.Map(document.getElementById('map'), {
+	center: location,
+	zoom: 15
+    });
+    return location;
+}
+
+function place_one(obj) {
+    var query = obj.ProviderName + ", " + obj.PhysicalCity +" MS "+ obj.PhysicalZipCode;
+    var location = put_gmap_on_zip(obj.PhysicalZipCode);
+    
+  var request = {
+    location: location,
+    radius: '50000',
+    query: query
+  };
+
+  service = new google.maps.places.PlacesService(gmap);
+    service.textSearch(request,
+		       function f(results,status) {
+			   place_one_callback(results,status,obj);
+		       }
+		      );
+}
+
+function place_one_callback(results, status,obj) {
+    alert(status + " " + JSON.stringify(results));
+    if (status == "ZERO_RESULTS")
+	obj.PostalAddress = "NA";
+    else     if (status == google.maps.places.PlacesServiceStatus.OK) {
+	obj.PostalAddress = results[0].formatted_address;
     }
-  }
 }
 
 initialize();
+
+
+
+// Idea here is to try to get physical addresses for records we don't have
+// address for 
+function geoplace() {
+    var possible
+         = all_data.filter(x =>
+				      {
+					  return ((typeof x.PostalAddress == 'undefined')
+						  &&
+						  (x.LicenseType != "UNLICENSED")
+						 );
+				      }
+			  );
+    if (possible) {
+	var next = possible[0];
+	var address = place_one(next);
+    } else {
+	alert("no records");
+    }
+
+}
 
     </script>
 </html>
