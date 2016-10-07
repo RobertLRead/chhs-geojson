@@ -39,7 +39,7 @@
 <!-- Latest compiled and minified JavaScript -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.11.2/js/bootstrap-select.min.js"></script>
 
-<script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?key=&libraries=places"></script>
+<script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCrHz-VCCJudAUffG24i9QOosAECS2aJSs&libraries=places"></script>
 
 
 </head>
@@ -48,6 +48,8 @@
     .floatright {
 	float: right;
     }
+
+    
 
     </style>
 
@@ -68,7 +70,11 @@
     <div>
 
     <input id="trytoplace" type="button" onclick="geoplace()" value="GeoPlace"></input>
-    
+<br>
+    <input id="stoptimer" type="button" onclick="stop_timer()" value="StopTimer"></input>
+<br>
+    <input id="renderall" type="button" onclick="renderall()" value="RenderAll"></input>
+<br>    
     <div>
     Provider Name: <input type="text" id="providername">
     </div>
@@ -99,9 +105,9 @@
     Zip Code: (Valid zip in MS : 39218,39194)
     <input type="text" id="zipcode">
     <input id="searchbutton" type="button" onclick="redraw_with_zip(this)" value="Search"></input>
-    </div>
     <div id="map">
-      </div>
+    </div>
+    </div>
     <div id="facmap" style="width: 600px; height: 400px"></div>
 	  <div id="faclist">
 	    <p>
@@ -109,7 +115,8 @@
         </section>
       </div>
     </div>
-    
+    <pre id="geo_list" style="{font-size: small;}">
+    </pre>
   </body>
     <script>
 
@@ -478,20 +485,20 @@ function put_gmap_on_zip(zip) {
 	center: location,
 	zoom: 15
     });
-    return location;
+    return [location,gmap];
 }
 
 function place_one(obj) {
     var query = obj.ProviderName + ", " + obj.PhysicalCity +" MS "+ obj.PhysicalZipCode;
-    var location = put_gmap_on_zip(obj.PhysicalZipCode);
+    var location_and_map = put_gmap_on_zip(obj.PhysicalZipCode);
     
   var request = {
-    location: location,
+    location: location_and_map[0],
     radius: '50000',
     query: query
   };
 
-  service = new google.maps.places.PlacesService(gmap);
+  service = new google.maps.places.PlacesService(location_and_map[1]);
     service.textSearch(request,
 		       function f(results,status) {
 			   place_one_callback(results,status,obj);
@@ -531,6 +538,76 @@ function geoplace() {
 	alert("no records");
     }
 
+}
+function place_one_callback(results, status,obj) {
+    // alert("Requested: " + JSON.stringify(obj) + "Got: " + JSON.stringify(results));
+    // document.getElementById('geo_list').innerHTML = "Requested: " + JSON.stringify(obj) + "Got: " + JSON.stringify(results);
+    console.log("status: "+status);
+    if (status == "ZERO_RESULTS")
+	obj.PostalAddress = "NA";
+    else     if (status == google.maps.places.PlacesServiceStatus.OK) {
+	obj.PostalAddress = results[0].formatted_address;
+	for(var i = 0; i < results.length; i++) {
+	    if (results[i].formatted_address.indexOf(obj.PhysicalZipCode) !== -1) {
+		obj.PostalAddress = results[i].formatted_address;
+		obj.GeoPlaceResult = results[i];
+		break;
+	    }
+	}
+	if (!obj.PostalAddress) {
+	    console.log("found one!");
+	}
+    } else {
+	obj.InProcess = null;
+    }
+}
+function renderall() {
+    var found = all_data.filter(x =>
+			  {
+			      return ((typeof x.GeoPlaceResult != 'undefined')
+				     );
+			  });
+    document.getElementById('geo_list').innerHTML = JSON.stringify(found,null,2) + "\n";
+}
+
+initialize();
+
+var TIMER_FOR_TEN_MS = 12000;
+// Idea here is to try to get physical addresses for records we don't have
+// address for
+function geoplace10() {
+    var possible
+        = all_data.filter(x =>
+			  {
+			      return ((typeof x.PostalAddress == 'undefined')
+				      &&
+				      ((typeof x.InProcess == 'undefined') || (x.InProcess == null))
+				      &&
+				      (x.ProviderTypeDescription == "Center")
+				      &&
+				      (x.LicenseType != "UNLICENSED")
+				     );
+			  }
+			 );
+    console.log("possible = "+possible.length);
+    if (possible) {
+	for (i = 0; i < Math.min(5,possible.length); i++) {
+	    var next = possible[i];
+	    next.InProcess = "true";
+	    place_one(next);
+	}
+	timer = setTimeout(geoplace10, TIMER_FOR_TEN_MS);
+    } else {
+	alert("no records");
+    }
+
+}
+var timer;
+function geoplace() {
+    timer = setTimeout(geoplace10, TIMER_FOR_TEN_MS);
+}
+function stop_timer() {
+    clearTimeout(timer);
 }
 
     </script>
